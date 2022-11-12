@@ -27,7 +27,9 @@ export default function User() {
     React.useEffect(() => {
         const q = query(collection(db, "users"));
         onSnapshot(q, (querySnapshot) => {
-            const documents = querySnapshot.docs.map(doc => doc.data())
+            const documents = querySnapshot.docs.map(doc => {
+                return { ...doc.data(), uid: doc.id }
+            })
             setData(documents)
         });
     }, []);
