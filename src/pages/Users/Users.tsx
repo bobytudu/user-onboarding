@@ -4,6 +4,7 @@ import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import EditIcon from '@mui/icons-material/Edit'
 import DeleteIcon from '@mui/icons-material/Delete'
+import ErrorOutlineOutlinedIcon from '@mui/icons-material/ErrorOutlineOutlined';
 import MaterialTable, { MTableToolbar } from '@material-table/core'
 import { ExportCsv, ExportPdf } from '@material-table/exporters';
 import { query, collection, DocumentData, onSnapshot, deleteDoc, doc } from "firebase/firestore";
@@ -11,6 +12,8 @@ import { db } from 'firebaseConfig'
 import { useNavigate } from 'react-router-dom'
 import EditUser from './components/EditUser'
 import { useSnackData } from 'context/SnackContext'
+import { Modal } from 'antd';
+import 'antd/dist/antd.css';
 interface FormValues {
     email: string
     name: string
@@ -18,6 +21,8 @@ interface FormValues {
     role: string
     uid: string
 }
+
+const { confirm } = Modal;
 
 export default function User() {
     const navigate = useNavigate();
@@ -34,10 +39,24 @@ export default function User() {
         });
     }, []);
 
+    const showConfirm = (id: string) => {
+        confirm({
+            title: 'Do you Want to delete these item?',
+            icon: <ErrorOutlineOutlinedIcon />,
+            content: 'These cannot be undone',
+            onOk() {
+                removeUser(id)
+            },
+            onCancel() {
+                console.log('Cancel');
+            },
+        });
+    };
+
     async function removeUser(id: string) {
         try {
             await deleteDoc(doc(db, "users", id));
-            openSuccess("user data updated successfully")
+            openSuccess("user data deleted successfully")
         } catch (error: any) {
             openError(error.message)
         }
@@ -85,7 +104,7 @@ export default function User() {
                         tooltip: 'Delete user',
                         onClick: async (event, rowData: any) => {
                             if (!rowData.uid) return alert('Not deletable')
-                            if (rowData.uid) return removeUser(rowData.uid)
+                            if (rowData.uid) return showConfirm(rowData.uid)
                         }
                     },
                 ]}
